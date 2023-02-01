@@ -13,7 +13,7 @@ from datetime import datetime
 
 class Client:
 
-    def __init__(self, seed, client_id, lr, weight_decay, batch_size, momentum, train_data, eval_data, model, device=None,
+    def __init__(self, seed, client_id, lr, weight_decay, batch_size, momentum, train_data, eval_data, full_dataset, fedir, model, device=None,
                  num_workers=0, run=None, mixup=False, mixup_alpha=1.0):
         self._model = model
         self.id = client_id
@@ -34,6 +34,27 @@ class Client:
         self.mixup = mixup
         self.mixup_alpha = mixup_alpha # α controls the strength of interpolation between feature-target pairs
 
+
+
+        if fedir:
+            # Importance Reweighting (FedIR)
+            
+            #capire come prendere labels da full_dataset
+            print(train_data)
+            """"
+            labels = set(datasets['train'].targets)
+            p = torch.tensor([(torch.tensor(datasets['train'].targets) == label).sum() for label in labels]) / len(datasets['train'].targets)
+            q = torch.tensor([(torch.tensor(datasets['train'].targets)[idxs['train']] == label).sum() for label in labels]) / len(torch.tensor(datasets['train'].targets)[idxs['train']])
+            self.weight = p/q
+            """
+        else:
+            # No Importance Reweighting
+            self.weight = None
+            
+        
+        
+        
+        
     def train(self, num_epochs=1, batch_size=10, minibatch=None):
         """Trains on self.model using the client's train_data.
 
@@ -47,7 +68,7 @@ class Client:
             update: state dictionary of the trained model
         """
         # Train model
-        criterion = nn.CrossEntropyLoss().to(self.device)
+        criterion = nn.CrossEntropyLoss(self.weight).to(self.device)
         optimizer = optim.SGD(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay, momentum=self.momentum)
         losses = np.empty(num_epochs)
 
