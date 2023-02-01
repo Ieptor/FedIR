@@ -234,12 +234,14 @@ def create_clients(users, train_data, test_data, model, args, ClientDataset, Cli
     client_params['model'] = model
     client_params['run'] = run
     client_params['device'] = device
+    client_params['fedir'] = args.fedir
     for u in users:
         c_traindata = ClientDataset(train_data[u], train=True, loading=args.where_loading, cutout=Cutout if args.cutout else None)
         c_testdata = ClientDataset(test_data[u], train=False, loading=args.where_loading, cutout=None)
         client_params['client_id'] = u
         client_params['train_data'] = c_traindata
         client_params['eval_data'] = c_testdata
+        client_params['full_dataset'] = train_data
         clients.append(Client(**client_params))
     return clients
 
